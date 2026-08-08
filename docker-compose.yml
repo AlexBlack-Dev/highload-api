@@ -1,0 +1,31 @@
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - RATE_STORE=redis
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgres://hlapp:hlapp@postgres:5432/hlapp
+      - ADMIN_KEY=${ADMIN_KEY:-dev-admin-key}
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=hlapp
+      - POSTGRES_PASSWORD=hlapp
+      - POSTGRES_DB=hlapp
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,0 +1,34 @@
+{
+  "name": "highload-api",
+  "version": "1.0.0",
+  "description": "High-performance HTTP API service with pluggable rate limiting and storage",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "bench": "autocannon -d 15 -c 50 http://localhost:3000/v1/mirror",
+    "bench:post": "autocannon -d 15 -c 50 -m POST -H 'content-type: application/json' -b '{\"text\":\"hello\"}' http://localhost:3000/v1/echo"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "fastify": "^5.0.0",
+    "ioredis": "^5.4.0",
+    "pg": "^8.13.0",
+    "pino": "^9.5.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.0",
+    "autocannon": "^8.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

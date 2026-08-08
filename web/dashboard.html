@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>highload/api · console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/dashboard.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div>
+          <div class="brand-name">highload/api</div>
+          <div class="brand-sub">console v1.0.0</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">Monitor</div>
+        <button class="nav-item active" data-view="overview">Overview</button>
+        <button class="nav-item" data-view="keys">API keys</button>
+        <button class="nav-item" data-view="burst">Load test</button>
+        <div class="nav-section">System</div>
+        <button class="nav-item" data-view="routes">Routes</button>
+        <button class="nav-item" data-view="metrics">Metrics</button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="env-row"><span>limiter</span><b id="env-store">—</b></div>
+        <div class="env-row"><span>storage</span><b id="env-db">—</b></div>
+        <div class="env-row"><span>limit/min</span><b id="env-limit">—</b></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="breadcrumb">highload/api <span style="color:var(--text-3)">/</span> <b id="crumb-view">Overview</b></div>
+        <div class="row">
+          <div class="status-line" id="status"></div>
+          <label style="display:flex;align-items:center;gap:8px;color:var(--text-2);font-size:12px">Admin key
+            <input id="admin-key" type="password" value="dev-admin-key" autocomplete="off" style="width:160px" spellcheck="false" />
+          </label>
+          <button class="btn" id="refresh">Refresh</button>
+        </div>
+      </div>
+
+      <section id="view-overview">
+        <h1 class="view-title">Overview</h1>
+        <p class="view-sub">Live traffic and rate-limit behaviour of this instance.</p>
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">Request rate</div>
+            <div class="metric-value" id="m-rps">—<span class="unit">req/s</span></div>
+            <div class="metric-note" id="m-rps-note">last 10s</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Total requests</div>
+            <div class="metric-value" id="m-total">—</div>
+            <div class="metric-note" id="m-uptime">uptime —</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">API keys</div>
+            <div class="metric-value" id="m-keys">—</div>
+            <div class="metric-note" id="m-keys-note">active in db</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Errors (4xx+)</div>
+            <div class="metric-value" id="m-errors">—</div>
+            <div class="metric-note">last 10s window</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Traffic by route <span class="meta">from /admin/dashboard</span></div>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <div id="route-table"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-keys" style="display:none">
+        <h1 class="view-title">API keys</h1>
+        <p class="view-sub">Keys are required for the high-limit bucket on /v1/*. A bucket is assigned per key.</p>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Keys</div>
+            <form id="key-form" class="row" style="margin:0">
+              <input id="key-name" placeholder="name, e.g. staging" required minlength="2" maxlength="64" />
+              <button type="submit" class="btn primary">Create key</button>
+            </form>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <div id="key-list"></div>
+            <div class="key-hint" id="key-hint"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-burst" style="display:none">
+        <h1 class="view-title">Load test</h1>
+        <p class="view-sub">Fire N parallel requests at /v1/mirror and watch the limiter enforce the bucket.</p>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Burst</div>
+<div class="row">
+              <select id="burst-mode">
+                <option value="anon">Anonymous (IP bucket, 120 rpm)</option>
+                <option value="key">With API key (600 rpm)</option>
+              </select>
+              <select id="burst-key" style="display:none"></select>
+              <input id="burst-count" type="number" value="300" min="1" max="2000" step="100" />
+              <button id="burst-run" class="btn primary">Run burst</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="burst-empty" id="burst-result">No run yet. Pick a mode and a concurrency, then press Run burst.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-routes" style="display:none">
+        <h1 class="view-title">Routes</h1>
+        <p class="view-sub">Every response is counted with the matched template route.</p>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Request counters</div></div>
+          <div class="panel-body" style="padding:0">
+            <div id="route-table-full"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-metrics" style="display:none">
+        <h1 class="view-title">Metrics</h1>
+        <p class="view-sub">Prometheus-style text endpoint. Requires the admin key.</p>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">GET /metrics</div>
+            <button class="btn sm" id="metrics-refresh">Fetch</button>
+          </div>
+          <div class="panel-body">
+            <pre class="mono" id="metrics-output" style="white-space:pre-wrap;margin:0;color:var(--text-2)">—</pre>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/dashboard.js" defer></script>
+</body>
+</html>
