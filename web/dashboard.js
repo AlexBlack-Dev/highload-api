@@ -137,25 +137,6 @@
         }
       });
     });
-    fillKeySelect();
-  }
-
-  function fillKeySelect() {
-    const sel = $("burst-key");
-    sel.innerHTML = "";
-    const active = keys.filter((k) => !k.revoked);
-    for (const k of active) {
-      const opt = document.createElement("option");
-      opt.value = k.id;
-      opt.textContent = k.name + " (" + k.id + ")";
-      sel.appendChild(opt);
-    }
-    syncBurstKeyPicker();
-  }
-
-  function syncBurstKeyPicker() {
-    const useKey = $("burst-mode").value === "key";
-    $("burst-key").style.display = useKey ? "" : "none";
   }
 
   async function refresh() {
@@ -204,11 +185,9 @@
     }
   });
 
-  $("burst-mode").addEventListener("change", syncBurstKeyPicker);
-
   $("burst-run").addEventListener("click", async () => {
     const count = Math.max(1, Math.min(2000, Number($("burst-count").value) || 300));
-    const useKey = $("burst-mode").value === "key";
+    const keyValue = $("burst-key").value.trim();
     const btn = $("burst-run");
     btn.disabled = true;
     setStatus("burst: " + count + " requests in flight…");
@@ -224,7 +203,7 @@
 
     const started = performance.now();
     const byStatus = {};
-    const headers = useKey && keys.length ? { "x-api-key": $("burst-key").value } : {};
+    const headers = keyValue ? { "x-api-key": keyValue } : {};
 
     await Promise.all(
       Array.from({ length: count }, () =>

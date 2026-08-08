@@ -106,11 +106,7 @@
           <div class="panel-head">
             <div class="panel-title">Burst</div>
 <div class="row">
-              <select id="burst-mode">
-                <option value="anon">Anonymous (IP bucket, 120 rpm)</option>
-                <option value="key">With API key (600 rpm)</option>
-              </select>
-              <select id="burst-key" style="display:none"></select>
+              <input id="burst-key" type="text" placeholder="API key (optional) — leave empty for IP bucket" spellcheck="false" autocomplete="off" style="min-width:260px" />
               <input id="burst-count" type="number" value="300" min="1" max="2000" step="100" />
               <button id="burst-run" class="btn primary">Run burst</button>
             </div>

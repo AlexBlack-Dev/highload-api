@@ -2,6 +2,7 @@
   "name": "highload-api",
   "version": "1.0.0",
   "description": "High-performance HTTP API service with pluggable rate limiting and storage",
+  "license": "MIT",
   "type": "module",
   "main": "dist/server.js",
   "scripts": {
